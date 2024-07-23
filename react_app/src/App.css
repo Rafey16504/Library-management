@@ -1,0 +1,110 @@
+/* App.css */
+.App {
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+.App-header {
+  background-image: url('C:\Developer\Library-management\react_app\public\books.jpg');
+  background-size: contain;
+  background-position: center;
+  padding: 20px;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+.Header-text{
+  color:rgb(255, 255, 255)
+}
+
+input[type="text"] {
+  margin: 10px 0;
+  padding: 10px;
+  width: 230px;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif
+}
+
+button {
+  padding: 10px 20px;
+  margin: 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+.books-list {
+  margin-top: 20px;
+  text-align: left;
+  display: inline-block;
+}
+
+.books-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.books-list li {
+  background: #f9f9f9;
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.books-list li strong {
+  font-weight: bold;
+}
+
+.message {
+  margin-top: 20px;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+.input-group {
+  padding: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+  color: white;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+.input-group input {
+  margin-right: 10px;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+/* body {
+  background-image: url('C:\Developer\react_app\public\books.jpg'); 
+  background-size: cover; 
+  background-position: center; 
+  background-repeat: no-repeat;
+  height: 100vh;
+  margin: 0; 
+  justify-content: center; 
+  align-items: center; 
+} */
+
+.book-add{
+  padding: 10px;
+}
+
+.profile{
+  
+  justify-content: end;
+  display: flex;
+}
+
+.result{
+    align-items: center;
+    color: black;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+body, html {
+  overflow: auto; 
+}

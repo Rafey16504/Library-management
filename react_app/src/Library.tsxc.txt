@@ -1,0 +1,229 @@
+// Library.tsx
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import "./App.css";
+
+interface Book {
+  title: string;
+  author: string;
+  borrow_date?: string;
+  borrow_status: string;
+  id: string;
+}
+
+function Library() {
+  const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
+  const [addMessage, setAddMessage] = useState("");
+  const [fetchMessage, setFetchMessage] = useState("");
+  const [borrowMessage, setBorrowMessage] = useState("");
+  const [returnMessage, setReturnMessage] = useState("");
+  const [deleteMessage, setDeleteMessage] = useState("");
+  const [book, setBook] = useState<Book | null>(null);
+  const [bookBorrow, setBookBorrow] = useState<Book | null>(null);
+  const [bookReturn, setBookReturn] = useState<Book | null>(null);
+  const [deletedBook, setDeletedBook] = useState<Book | null>(null);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [showBooks, setShowBooks] = useState(false);
+  const [id, setID] = useState(String);
+  const [borrowID, setBorrowID] = useState(String);
+  const [returnID, setReturnID] = useState(String);
+  const [deleteID, setDeleteID] = useState(String);
+
+  const handleAddBook = async () => {
+    if (title && author) {
+      try {
+        const { data } = await axios.post("http://localhost:8000/library/", {
+          title: title,
+          author: author,
+        });
+        console.log(data);
+        setAddMessage(`Book "${title}" by ${author} successfully added!`);
+        setTitle("");
+        setAuthor("");
+        fetchBooks();
+      } catch (err) {
+        console.log(err);
+      }
+
+      setTimeout(() => {
+        setAddMessage("");
+      }, 1000);
+    } else {
+      setAddMessage("Both title and author are required.");
+      setTimeout(() => {
+        setAddMessage("");
+      }, 2000);
+    }
+  };
+
+  const fetchBookById = async () => {
+    setBook(null);
+    let found = false;
+
+    for (let i = 0; i < books.length; i++) {
+      if (books[i].id === id) {
+        setBook(books[i]);
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      console.log("Error fetching book data:");
+      setFetchMessage("No Book with this ID exists");
+      setTimeout(() => {
+        setFetchMessage("");
+      }, 3000);
+    }
+  };
+
+  const fetchBooks = async () => {
+    try {
+      const { data } = await axios.get("http://localhost:8000/library");
+      setBooks(data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  const borrowBook = async () => {
+    setBookBorrow(null);
+    try {
+      if (bookBorrow?.borrow_status === "borrowed") {
+        setBookBorrow(null);
+        setBorrowMessage("Book already Borrowed!");
+        setTimeout(() => {
+          setBorrowMessage("");
+        }, 3000);
+      }
+      const { data } = await axios.post(
+        `http://localhost:8000/library/borrow/${borrowID}`
+      );
+      console.log(data);
+      if (data.message) {
+        setBookBorrow(null);
+        setBorrowMessage("Book already Borrowed!");
+        setTimeout(() => {
+          setBorrowMessage("");
+        }, 3000);
+      } else {
+        setBookBorrow(data);
+        fetchBooks();
+        setBorrowMessage("Book borrowed successfully!");
+        setTimeout(() => {
+          setBorrowMessage("");
+        }, 3000);
+      }
+    } catch (error) {
+      console.log("Error while borrowing!", error);
+      setBorrowMessage("Could not borrow book. Book with this ID does not exist.");
+      setTimeout(() => {
+        setBorrowMessage("");
+      }, 3000);
+    }
+  };
+
+  const returnBook = async () => {
+    setBookReturn(null);
+    try {
+      if (bookReturn?.borrow_status === "not borrowed") {
+        setBookReturn(null);
+        setReturnMessage("Book hasn't been borrowed!");
+        setTimeout(() => {
+          setReturnMessage("");
+        }, 3000);
+      }
+      const { data } = await axios.post(
+        `http://localhost:8000/library/return/${returnID}`
+      );
+      console.log(data);
+      setBookReturn(data);
+      fetchBooks();
+      setReturnMessage("Book returned successfully!");
+      setTimeout(() => {
+        setReturnMessage("");
+      }, 3000);
+    } catch (error) {
+      console.log("Error while returning!", error);
+      setReturnMessage("Could not return book. Book with this ID does not exist.");
+      setTimeout(() => {
+        setReturnMessage("");
+      }, 3000);
+    }
+  };
+
+  const deleteBook = async () => {
+    try {
+      const { data } = await axios.delete(
+        `http://localhost:8000/library/${deleteID}`
+      );
+      console.log("Deleted Successfully");
+      setDeleteMessage("Book removed!");
+      for (let i = 0; i < books.length; i++)
+        if (books[i].id === deleteID) setDeletedBook(books[i]);
+      fetchBooks();
+      setTimeout(() => {
+        setDeleteMessage("");
+      }, 3000);
+    } catch (error) {
+      console.log("Error occured", error);
+      setDeleteMessage("Could not delete. Book with this ID does not exist");
+      setTimeout(() => {
+        setDeleteMessage("");
+      }, 3000);
+    }
+  };
+
+  useEffect(() => {
+    fetchBooks();
+  }, []);
+
+  useEffect(() => {
+    if (bookBorrow) {
+      const timer = setTimeout(() => {
+        setBookBorrow(null);
+      }, 4000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [bookBorrow]);
+
+  useEffect(() => {
+    if (bookReturn) {
+      const timer = setTimeout(() => {
+        setBookReturn(null);
+      }, 4000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [bookReturn]);
+
+  useEffect(() => {
+    if (book) {
+      const timer = setTimeout(() => {
+        setBook(null);
+      }, 4000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [book]);
+
+  const toggleShowBooks = () => {
+    setShowBooks(!showBooks);
+  };
+
+  return (
+    <div className="Library">
+      <header className="App-header">
+        <h1>Library Management</h1>
+      </header>
+
+      <input
+        type="text"
+        placeholder="Book Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+      />
+      <input
+        type="text"
