@@ -42,6 +42,7 @@ function sendEmail(email: any, code: any) {
 
 bookRouter.post("/send-email/:id", async (req: any, res: any) => {
   const { email } = req.body;
+  // const service = email.split('@')[1].split('.')[0];
   const id = req.params.id;
   verification_code[id] = Math.floor(
     100000 + Math.random() * 900000
@@ -217,9 +218,13 @@ bookRouter.post("/sign-up", (req: any, res: any) => {
     const existingUser = accounts.find(
       (account: any) => account.username === user
     );
-    if (existingUser in accounts)
-      return res.status(409).send({ error: "Username already exists" });
-
+    if (existingUser)
+      return res.send({ error: "Username already exists" });
+    const existingEmail = accounts.find(
+      (account:any) => account.email === email
+    );
+    if(existingEmail)
+      return res.send({error: "Email has already been registered"})
     const newAccount = {
       id: uuidv4().replace(/-/g, ""),
       username: user,
@@ -228,7 +233,7 @@ bookRouter.post("/sign-up", (req: any, res: any) => {
     };
     accounts.push(newAccount);
 
-    return res.status(200).send(newAccount);
+    return res.send(newAccount);
   } catch (error) {
     console.log(error);
     return res.status(400).send({ error });

@@ -30,26 +30,33 @@ function SignUp() {
   const signUp = async () => {
     if (username && password && email) {
       try {
-        const response = await axios.post("http://localhost:8000/sign-up", {
+        const {data} = await axios.post("http://localhost:8000/sign-up", {
           user: username,
           pass: password,
           email: email,
         });
-        setSignUpMessage("Please wait for Verification");
-        const { data } = await axios.post(
-          `http://localhost:8000/send-email/${loggedInAccount}`,
+        if(data.error)
           {
-            email: email,
+            setSignUpMessage(data.error)
           }
-        );
-
-        setIsVerificationVisible(true);
-        console.log("Email sent successfully!");
-        setSignUpMessage("Please check your email for the verification code!");
-
-        if (data.message) {
-          setVerificationCode(data.message);
-        }
+          else{
+            setSignUpMessage("Please wait for Verification");
+            const { data } = await axios.post(
+              `http://localhost:8000/send-email/${loggedInAccount}`,
+              {
+                email: email,
+              }
+            );
+            
+              setIsVerificationVisible(true);
+              console.log("Email sent successfully!");
+              setSignUpMessage("Please check your email for the verification code!");
+            
+            if (data.message) {
+              setVerificationCode(data.message);
+            }
+          }
+        
       } catch (error: any) {
         if (error.response.status === 409) {
           setSignUpMessage("Username already exists");

@@ -158,7 +158,7 @@ function Library() {
         for(let i = 0; i < books.length; i++) {
             if(books[i].id === returnID) {
                 retBook = books[i];
-                break; // Stop the loop once the book is found
+                break; 
             }
         }
         if (!retBook) {
