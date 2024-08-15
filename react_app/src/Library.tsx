@@ -4,6 +4,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 interface Book {
   title: string;
@@ -34,25 +35,61 @@ function Library() {
   const [borrowID, setBorrowID] = useState(String);
   const [returnID, setReturnID] = useState(String);
   const [deleteID, setDeleteID] = useState(String);
+  const [isBookFetched, setIsBookFetched] = useState(false);
 
   const location = useLocation();
   const { loggedInAccount } = location.state || {};
 
   const navigate = useNavigate();
+  const [selectedFile, setSelectedFile] = useState<File|null>(null);
+  const [fileName, setFileName] = useState('No file chosen');
+  const [fileURL, setFileURL] = useState<string|undefined>(undefined);
 
-  const AllBooks = () => {
-    return books;
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
+
+  const toggleDropdown = () => {
+    setDropdownOpen(!isDropdownOpen);
   };
 
+
+  const handleFileChange = (event:any) => {
+    const file = event.target.files[0];
+
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setSelectedFile(file);
+      setFileName(file.name);
+      setFileURL(url);
+    } else {
+      setSelectedFile(null);
+      setFileName('No file chosen');
+      setFileURL(undefined);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setFileName('No file chosen');
+    setFileURL(undefined);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (fileURL) {
+        URL.revokeObjectURL(fileURL);
+      }
+    };
+  }, [fileURL]);
+
   const handleAddBook = async () => {
-    if (title && author) {
+    if (title && author ) {
       try {
-        const { data } = await axios.post(
-          `http://localhost:8000/library/${loggedInAccount}`,
-          {
-            title: title,
-            author: author,
-          }
+        // const formData = new FormData();
+
+        const data = await axios.post(
+          `http://localhost:8100/library/${loggedInAccount}`,{
+            title,
+            author}
         );
         console.log(data);
         setAddMessage(`Book "${title}" by ${author} successfully added!`);
@@ -63,8 +100,8 @@ function Library() {
           setAddMessage("");
         }, 1000);
       } catch (error: any) {
-        if (error.response && error.response.status === 400) {
-          setAddMessage("Book already exists");
+        if (error) {
+          setAddMessage(error);
           console.log(error);
           setTimeout(() => {
             setAddMessage("");
@@ -72,27 +109,36 @@ function Library() {
         }
       }
     } else {
-      setAddMessage("Both title and author are required.");
+      setAddMessage("All fields are required.");
       setTimeout(() => {
         setAddMessage("");
       }, 4000);
     }
-  };
+  };  
   
   const fetchBookById = async () => {
-    setBook(null);
-    let found = false;
-
-    for (let i = 0; i < books.length; i++) {
-      if (books[i].id === id) {
-        setBook(books[i]);
-        found = true!;
-        break;
-      }
+    if(!id)
+    {
+      setFetchMessage("Please enter a valid ID!")
+      setBook(null);
+      setIsBookFetched(false);
+      setTimeout(() => {
+        setFetchMessage("");
+      }, 4000);
+      return
     }
-
-    if (!found) {
-      console.log("Error fetching book data:");
+    setBook(null);
+    setIsBookFetched(false);
+    try{
+      const response = await axios.get(`http://localhost:8100/library/${id}`)
+    
+      setBook(response.data)
+      setIsBookFetched(true)
+      if(book === null)
+        setIsBookFetched(false)
+    }
+    catch (error) {
+      console.error("Error fetching book data:", error);
       setFetchMessage("No Book with this ID exists");
       setTimeout(() => {
         setFetchMessage("");
@@ -102,53 +148,54 @@ function Library() {
 
   const fetchBooks = async () => {
     try {
-      const { data } = await axios.get("http://localhost:8000/library");
-      setBooks(data);
-    } 
-    catch (error) {
-      console.error("Error fetching data:", error);
+      const response = await axios.get("http://localhost:8100/library");
+    
+      setBooks(response.data);
+      console.log(books);
+    } catch (error) {
+      console.error('Error fetching books:', error);
     }
   };
 
   const borrowBook = async () => {
     setBookBorrow(null);
     try {
-      if (bookBorrow?.borrow_status === "borrowed") {
-        setBookBorrow(null);
-        setBorrowMessage("Book already Borrowed!");
-        setTimeout(() => {
-          setBorrowMessage("");
-        }, 4000);
-      }
       const { data } = await axios.post(
-        `http://localhost:8000/library/borrow/${borrowID}`,
+        `http://localhost:8100/library/borrow/${borrowID}`,
         {
           user: loggedInAccount,
         }
       );
-      console.log(data);
-      if (data.message) {
-        setBookBorrow(null);
-        setBorrowMessage("Book already Borrowed!");
-        setTimeout(() => {
-          setBorrowMessage("");
-        }, 4000);
-      } else {
         setBookBorrow(data);
         fetchBooks();
         setBorrowMessage("Book borrowed successfully!");
         setTimeout(() => {
           setBorrowMessage("");
         }, 4000);
+      
+    } catch (error:any) {
+      if (axios.isAxiosError(error) && error.response) {
+        switch (error.response.status) {
+          case 401:
+            setBorrowMessage('Book has already been borrowed.');
+            break;
+          case 400:
+            setDeleteMessage('No Book with this ID exists');
+            break;
+        }
+        setTimeout(() => {
+          setDeleteMessage('');
+        }, 4000);
+      }else{
+        console.log("Error while borrowing!", error);
+        setBorrowMessage(
+          "Could not borrow book. Book with this ID does not exist."
+        );
+        setTimeout(() => {
+          setBorrowMessage("");
+        }, 4000);
       }
-    } catch (error) {
-      console.log("Error while borrowing!", error);
-      setBorrowMessage(
-        "Could not borrow book. Book with this ID does not exist."
-      );
-      setTimeout(() => {
-        setBorrowMessage("");
-      }, 4000);
+      
     }
   };
 
@@ -166,7 +213,7 @@ function Library() {
         } else if (retBook.borrow_status === "not borrowed") {
             setReturnMessage("Book hasn't been borrowed yet!");
         } else if (retBook.borrow_status === "borrowed") {
-            const {data} = await axios.post(`http://localhost:8000/library/return/${loggedInAccount}/${returnID}`);
+            const {data} = await axios.post(`http://localhost:8100/library/return/${loggedInAccount}/${returnID}`);
             if(data.error)
             {
               setReturnMessage("Book can only be returned if you borrowed it!")
@@ -192,7 +239,7 @@ function Library() {
   const deleteBook = async () => {
     try {
         const { data } = await axios.delete(
-          `http://localhost:8000/library/${loggedInAccount}/${deleteID}`
+          `http://localhost:8100/library/${loggedInAccount}/${deleteID}`
         );
         if(data.error)
         {
@@ -213,13 +260,28 @@ function Library() {
         }
       
     catch (error:any) {
-        console.log("Error occured", error);
-        setDeleteMessage("Could not delete. Book with this ID does not exist");
+      if (axios.isAxiosError(error) && error.response) {
+        switch (error.response.status) {
+          case 401:
+            setDeleteMessage('Unauthorized: Only the user that added the book can delete it.');
+            break;
+          case 404:
+            setDeleteMessage('Book not found.');
+            break;
+        }
         setTimeout(() => {
-          setDeleteMessage("");
+          setDeleteMessage('');
         }, 4000);
-    }
-  };
+      }
+      else {
+        console.error('Error fetching book:', error);
+        setDeleteMessage('An unexpected error occurred.');
+        setTimeout(() => {
+          setDeleteMessage('');
+        }, 4000);
+      }
+  }
+};
 
   useEffect(() => {
     fetchBooks();
@@ -268,7 +330,14 @@ function Library() {
         </div>
       </header>
       <div className="profile">
-        <button>{`User: ${loggedInAccount}`}</button>
+      <button onClick={toggleDropdown}>
+        {`User: ${loggedInAccount}`}
+      </button>
+      {isDropdownOpen && (
+        <ul className="dropdown-menu">
+          <li><Link to="/">Logout</Link> </li>
+        </ul>
+      )}
       </div>
       <div className="book-add">
         <input
@@ -283,6 +352,36 @@ function Library() {
           value={author}
           onChange={(e) => setAuthor(e.target.value)}
         />
+          {/* <div className="file-upload">
+      <input
+        type="file"
+        id="file-input"
+        onChange={handleFileChange}
+        style={{ display: 'none' }}
+      />
+      <label htmlFor="file-input" className="custom-file-upload">
+        Choose File
+      </label>
+      {selectedFile ? (
+        <a 
+        href={fileURL} 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="file-name"
+        download={selectedFile.name}
+        >
+          {fileName}
+        </a>
+      ) : (
+        <span className="file-name">{fileName}</span>
+      )}
+      {selectedFile && (
+        <button className="remove-file" onClick={handleRemoveFile}>
+          &times;
+        </button>
+      )} */}
+    {/* </div> */}
+        
         {addMessage && <div className="message">{addMessage}</div>}
         <div>
           <button onClick={handleAddBook}>Add Book</button>
@@ -311,7 +410,7 @@ function Library() {
         {fetchMessage && <div className="message">{fetchMessage}</div>}
       </div>
 
-      {book && (
+      {isBookFetched && book && (
         <div className="result">
           <br />
           <li key={book.id}>

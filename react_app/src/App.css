@@ -22,6 +22,14 @@ input[type="text"] {
   border-radius: 4px;
   font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif
 }
+input[type="file"] {
+  margin: 10px 0;
+  padding: 10px;
+  width: 230px;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif
+}
 
 button {
   padding: 10px 20px;
@@ -78,16 +86,6 @@ button:hover {
   margin-right: 10px;
   font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
-/* body {
-  background-image: url('C:\Developer\react_app\public\books.jpg'); 
-  background-size: cover; 
-  background-position: center; 
-  background-repeat: no-repeat;
-  height: 100vh;
-  margin: 0; 
-  justify-content: center; 
-  align-items: center; 
-} */
 
 .book-add{
   padding: 10px;
@@ -107,4 +105,72 @@ button:hover {
 
 body, html {
   overflow: auto; 
+}
+
+.dropdown-container {
+  position:absolute; /* This makes the dropdown menu's absolute positioning relative to this container */
+  display: flex;
+  text-align: right; /* Aligns the button to the right if needed */
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 20.5%; /* Positions the dropdown directly below the button */
+  list-style: none;
+  right:6px;
+  padding: 0;
+  margin: 0;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+  width: 110px;
+}
+
+.dropdown-menu li {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.dropdown-menu li:hover {
+  background-color: #f0f0f0;
+}
+
+.file-upload {
+  padding: 8px;
+  display:block;
+  align-items: center;
+  gap: 10px;
+}
+
+.custom-file-upload {
+  background-color: #007bff;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.custom-file-upload:hover {
+  background-color: #0056b3;
+}
+
+.file-name {
+  font-size: 14px;
+  padding: 7px;
+  color: #333;
+}
+.remove-file {
+  background-color: transparent;
+  color: #ff0000;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.remove-file:hover {
+  color: #cc0000;
+  background-color: transparent;
 }

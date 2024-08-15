@@ -3,7 +3,8 @@ const bodyParser = require('body-parser');
 import { bookRouter } from './library_management';
 const cors = require('cors');
 const app = express();
-const port = 8000;
+const port = 8100;
+export const client = require('./db.ts')
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -19,3 +20,4 @@ app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
 });
 
+client.connect();

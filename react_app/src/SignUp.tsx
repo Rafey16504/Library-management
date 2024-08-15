@@ -2,14 +2,14 @@
 import "./SignUp.css";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import { AnyARecord } from "dns";
 
 function SignUp() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
+  const [id, setID] = useState("")
   const [verificationCode, setVerificationCode] = useState("");
   const [inputCode, setInputCode] = useState("");
   const location = useLocation();
@@ -30,19 +30,21 @@ function SignUp() {
   const signUp = async () => {
     if (username && password && email) {
       try {
-        const {data} = await axios.post("http://localhost:8000/sign-up", {
+        const {data} = await axios.post("http://localhost:8100/sign-up", {
           user: username,
           pass: password,
           email: email,
         });
+        setID(data.id)
         if(data.error)
           {
             setSignUpMessage(data.error)
+            setID("")
           }
           else{
             setSignUpMessage("Please wait for Verification");
             const { data } = await axios.post(
-              `http://localhost:8000/send-email/${loggedInAccount}`,
+              `http://localhost:8100/send-email/${loggedInAccount}`,
               {
                 email: email,
               }
@@ -58,11 +60,8 @@ function SignUp() {
           }
         
       } catch (error: any) {
-        if (error.response.status === 409) {
-          setSignUpMessage("Username already exists");
-        } else {
           setSignUpMessage("Error signing up: " + error.message);
-        }
+        
         console.error("Error signing up:", error, accounts);
       }
     } else {
@@ -74,7 +73,7 @@ function SignUp() {
     }, 2000);
   };
 
-  const add_account = (username: any, password: any) => {
+  const add_account = async (username: any, password: any,email:any) => {
     try {
       if (inputCode === verificationCode) {
         setAccounts((prevUsers) => ({
@@ -85,6 +84,16 @@ function SignUp() {
         setPassword("");
         setSignUpMessage("Your Account has been verified.");
         setIsVerificationVisible(false);
+        const { data } = await axios.post(
+          `http://localhost:8100/addbook`,
+          {
+            id: id,
+            username: username,
+            pass: password,
+            email: email
+          }
+        );
+        setID("")
       } else {
         setSignUpMessage("Wrong Verification Code!");
       }
@@ -147,9 +156,9 @@ function SignUp() {
               />
               <button
                 onClick={() => {
-                  add_account(username, password);
+                  add_account(username, password,email);
                 }}
-              >
+              >   
                 Verify
               </button>
             </div>

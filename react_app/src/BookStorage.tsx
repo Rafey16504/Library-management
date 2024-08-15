@@ -7,11 +7,12 @@ import { useLocation } from "react-router-dom";
 interface Book {
   title: string;
   author: string;
-  user: string;
+  book_owner: string;
   borrow_date?: string;
   borrow_user?: string;
   borrow_status: string;
   id: string;
+  book_file:string;
 }
 
 function BookStorage() {
@@ -20,14 +21,40 @@ function BookStorage() {
   const [message, setMessage] = useState("");
   const { loggedInAccount } = location.state || {};
 
-  const fetchBooks = async () => {
+  // const downloadFile = async (bookId: string, fileName: string) => {
+  //   try {
+  //     const response = await axios.get(`http://localhost:8100/library/book-file/${bookId}`, {
+  //       responseType: 'blob',
+  //     });
+
+  //     const contentType = response.headers['Content-Type'];
+  //     const extension = contentType === 'application/docx' ? 'docx' : 'pdf';
+  
+  //     const url = window.URL.createObjectURL(new Blob([response.data]));
+  //     const link = document.createElement('a');
+  //     link.href = url;
+  //     link.setAttribute('download', `${fileName}.${extension}`); // Use the correct file extension
+  //     document.body.appendChild(link);
+  //     link.click();
+  
+  //     // Clean up
+  //     document.body.removeChild(link);
+  //     window.URL.revokeObjectURL(url);
+  //   } catch (error) {
+  //     setMessage("ERRRORRR")
+  //     console.error('Error downloading file:', error);
+  //   }
+  // };
+
+  async function fetchBooks() {
     try {
-      const { data } = await axios.get("http://localhost:8000/library");
-      setBooks(data);
+      const response = await axios.get("http://localhost:8100/library");
+    
+      setBooks(response.data);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error('Error fetching books:', error);
     }
-  };
+  }
 
   useEffect(() => {
     fetchBooks();
@@ -71,8 +98,8 @@ function BookStorage() {
                 )}
                 <span>Borrow Status:</span> {book.borrow_status} <br />
                 <span style={{ fontWeight: "bold" }}>ID:</span> {book.id} <br />
-                <span style={{ fontWeight: "bold" }}>Uploaded By:</span>{" "}
-                {book.user} <br />
+                <span style={{ fontWeight: "bold" }}>Uploaded By:</span>{" "}{book.book_owner} <br />
+                
               </li>
             ))}
           </ul>
